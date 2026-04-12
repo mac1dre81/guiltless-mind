@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">DocEditor</string>
+    <string name="title_documents">Documents</string>
+    <string name="title_editor">Editor</string>
+    <string name="action_save">Save</string>
+    <string name="action_search">Search</string>
+    <string name="recent_documents_title">Recent documents</string>
+    <string name="open_document">Open document</string>
+    <string name="settings">Settings</string>
+    <string name="empty_recent_documents">No recent documents yet. Open a PDF, TXT, or Markdown file to get started.</string>
+    <string name="scan_document">Scan document</string>
+    <string name="pro_required_message">Pro is required to scan documents.</string>
+    <string name="editor_empty_state">Open a document from the Documents tab to start viewing or editing.</string>
+    <string name="no_document_found">No document found</string>
+    <string name="search_hint">Search text…</string>
+    <string name="search_next">Next</string>
+    <string name="search_close">Close</string>
+    <string name="search_no_match">No matching text found</string>
+</resources>

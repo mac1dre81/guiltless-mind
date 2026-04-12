@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_documents"
+        android:icon="@android:drawable/ic_menu_gallery"
+        android:title="@string/title_documents" />
+    <item
+        android:id="@+id/navigation_editor"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="@string/title_editor" />
+</menu>

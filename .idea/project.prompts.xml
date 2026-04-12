@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PromptTemplates">
+    <option name="builtInPromptOverrides">
+      <list>
+        <BuiltInPromptOverride>
+          <option name="groupId" value="rules" />
+          <option name="promptId" value="project" />
+          <option name="text" value="Apply these architecture rules to every new component you generate&#10;// DEVELOPMENT RULES FOR COPILOT:&#10;// 1. Follow Clean Architecture with 3 layers: Data, Domain, Presentation&#10;// 2. Use MVVM pattern with ViewModels for all UI logic&#10;// 3. Repository pattern for all data operations&#10;// 4. Dependency injection using manual DI (no Dagger/Hilt for simplicity)&#10;// 5. Sealed classes for all UI states (Loading, Success, Error)" />
+        </BuiltInPromptOverride>
+      </list>
+    </option>
+  </component>
+</project>

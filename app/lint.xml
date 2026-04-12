@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Jetpack Compose Best Practices -->
+    <issue id="ComposableNaming" severity="error" />
+    <issue id="CompositionLocalNaming" severity="warning" />
+    <issue id="ModifierParameter" severity="error" />
+    <issue id="ModifierFactoryReturnType" severity="error" />
+    <issue id="ModifierFactoryExtensionFunction" severity="error" />
+    <issue id="ModifierFactoryUnreferencedReceiver" severity="error" />
+    <issue id="SuspiciousModifierThen" severity="error" />
+    <issue id="UnnecessaryComposedModifier" severity="warning" />
+    <issue id="UnrememberedMutableState" severity="error" />
+    <issue id="OpaqueUnitKey" severity="warning" />
+    <issue id="MutableCollectionMutableState" severity="warning" />
+    <issue id="FlowOperatorInvokedInComposition" severity="error" />
+    <issue id="CoroutineCreationDuringComposition" severity="error" />
+    <issue id="StateFlowValueCalledInComposition" severity="error" />
+    <issue id="AutoboxingStateCreation" severity="warning" />
+    <issue id="AutoboxingStateValueProperty" severity="warning" />
+    <issue id="ViewModelConstructorInComposable" severity="error" />
+    <issue id="MultipleAwaitPointerEventScopes" severity="warning" />
+    <issue id="ReturnFromAwaitPointerEventScope" severity="warning" />
+    <issue id="SuspiciousCompositionLocalModifierRead" severity="error" />
+
+    <!-- Fragment / Lifecycle / Architecture Best Practices -->
+    <issue id="FragmentTagUsage" severity="error" />
+    <issue id="FragmentLiveDataObserve" severity="error" />
+    <issue id="FragmentBackPressedCallback" severity="error" />
+    <issue id="FragmentAddMenuProvider" severity="error" />
+    <issue id="UseRequireInsteadOfGet" severity="warning" />
+    <issue id="LifecycleCurrentStateInComposition" severity="error" />
+    <issue id="RepeatOnLifecycleWrongUsage" severity="error" />
+    <issue id="UnsafeRepeatOnLifecycleDetector" severity="error" />
+    <issue id="UnsafeLifecycleWhenUsage" severity="error" />
+    <issue id="NullSafeMutableLiveData" severity="error" />
+
+    <!-- Navigation Best Practices -->
+    <issue id="DeepLinkInActivityDestination" severity="warning" />
+    <issue id="EmptyNavDeepLink" severity="error" />
+
+    <!-- AppCompat / UI Best Practices -->
+    <issue id="UseSwitchCompatOrMaterialXml" severity="warning" />
+    <issue id="UseSwitchCompatOrMaterialCode" severity="warning" />
+    <issue id="UseCompatTextViewDrawableXml" severity="warning" />
+    <issue id="UseCompatTextViewDrawableApis" severity="warning" />
+    <issue id="UseCompatLoadingForDrawables" severity="warning" />
+    <issue id="UseCompatLoadingForColorStateLists" severity="warning" />
+    <issue id="UseAndroidAlpha" severity="warning" />
+    <issue id="UseAppTint" severity="warning" />
+
+    <!-- Code Quality & Kotlin / Java -->
+    <issue id="UnknownNullness" severity="warning" />
+    <issue id="KotlinPropertyAccess" severity="warning" />
+    <issue id="LambdaLast" severity="warning" />
+    <issue id="NoHardKeywords" severity="warning" />
+
+    <issue id="UseTomlInstead" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="Aligned16KB" severity="ignore" />
+    <issue id="AlwaysShowAction" severity="ignore" />
+    <issue id="ScopedStorage" severity="ignore" />
+</lint>
