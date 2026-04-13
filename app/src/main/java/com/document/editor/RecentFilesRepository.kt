@@ -46,7 +46,7 @@ class RecentFilesRepository(private val context: Context) {
         val timestamp = System.currentTimeMillis()
         context.dataStore.edit { preferences ->
             val current = preferences[recentFilesKey] ?: emptySet()
-            val updated = current.filterNot { it.endsWith("::$uri") || it.substringAfter("::", "") == uri }.toMutableSet()
+            val updated = current.filterNot { it.substringAfter("::", "") == uri }.toMutableSet()
             updated.add("$timestamp::$uri")
 
             val latest = updated

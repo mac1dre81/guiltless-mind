@@ -15,16 +15,26 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var recentFilesRepository: RecentFilesRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
 
-        val repository = RecentFilesRepository(this)
+        recentFilesRepository = RecentFilesRepository(this)
+        setupDarkModeObserver()
+
+        initializeAds()
+
+        setupNavigation()
+    }
+
+    private fun setupDarkModeObserver() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                repository.isDarkModeFlow.collect { isDark ->
+                recentFilesRepository.isDarkModeFlow.collect { isDark ->
                     if (isDark != null) {
                         val mode = if (isDark) {
                             AppCompatDelegate.MODE_NIGHT_YES
@@ -38,11 +48,15 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
 
+    private fun initializeAds() {
         runCatching {
             MobileAds.initialize(this) {}
         }
+    }
 
+    private fun setupNavigation() {
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as androidx.navigation.fragment.NavHostFragment

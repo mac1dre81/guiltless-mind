@@ -23,6 +23,7 @@ import io.noties.markwon.Markwon
 class DocumentEditorFragment : Fragment() {
     private val viewModel: DocumentViewModel by viewModels()
 
+    // UI Elements
     private lateinit var progressBar: ProgressBar
     private lateinit var editText: EditText
     private lateinit var searchEditText: EditText
@@ -31,9 +32,14 @@ class DocumentEditorFragment : Fragment() {
     private lateinit var pdfImageView: ImageView
     private lateinit var emptyStateText: TextView
 
+    // Toolbar references
     private var searchToolbar: View? = null
     private var formatToolbar: View? = null
+
+    // Markdown rendering
     private var markwon: Markwon? = null
+
+    // State variables
     private var isEditMode = false
     private var uriString: String? = null
     private var lastSearchIndex = -1

@@ -114,10 +114,30 @@ fun OcrScreen(imageUris: List<String>, pdfPath: String?, onClose: () -> Unit) {
                 }
                 recognizedText = stringBuilder.toString().trim()
             } catch (e: Exception) {
-                e.printStackTrace()
                 errorState = true
             } finally {
                 isLoading = false
+            }
+        }
+    }
+
+    fun saveOcrResult(extension: String) {
+        coroutineScope.launch {
+            try {
+                val file = File(context.filesDir, "OCR_Result_${System.currentTimeMillis()}$extension")
+                withContext(Dispatchers.IO) {
+                    FileOutputStream(file).use {
+                        it.write(recognizedText.toByteArray())
+                    }
+                }
+                repository.addRecentFile(Uri.fromFile(file).toString())
+                if (pdfPath != null) {
+                    repository.addRecentFile(Uri.fromFile(File(pdfPath)).toString())
+                }
+                Toast.makeText(context, "Saved as ${file.name}", Toast.LENGTH_SHORT).show()
+                onClose()
+            } catch (_: Exception) {
+                Toast.makeText(context, "Error saving file", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -184,47 +204,13 @@ fun OcrScreen(imageUris: List<String>, pdfPath: String?, onClose: () -> Unit) {
                 }
 
                 Button(onClick = {
-                    coroutineScope.launch {
-                        try {
-                            val file = File(context.filesDir, "OCR_Result_${System.currentTimeMillis()}.txt")
-                            withContext(Dispatchers.IO) {
-                                FileOutputStream(file).use {
-                                    it.write(recognizedText.toByteArray())
-                                }
-                            }
-                            repository.addRecentFile(Uri.fromFile(file).toString())
-                            if (pdfPath != null) {
-                                repository.addRecentFile(Uri.fromFile(File(pdfPath)).toString())
-                            }
-                            Toast.makeText(context, "Saved as ${file.name}", Toast.LENGTH_SHORT).show()
-                            onClose()
-                        } catch (_: Exception) {
-                            Toast.makeText(context, "Error saving file", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    saveOcrResult(".txt")
                 }) {
                     Text("Save .txt")
                 }
 
                 Button(onClick = {
-                    coroutineScope.launch {
-                        try {
-                            val file = File(context.filesDir, "OCR_Result_${System.currentTimeMillis()}.md")
-                            withContext(Dispatchers.IO) {
-                                FileOutputStream(file).use {
-                                    it.write(recognizedText.toByteArray())
-                                }
-                            }
-                            repository.addRecentFile(Uri.fromFile(file).toString())
-                            if (pdfPath != null) {
-                                repository.addRecentFile(Uri.fromFile(File(pdfPath)).toString())
-                            }
-                            Toast.makeText(context, "Saved as ${file.name}", Toast.LENGTH_SHORT).show()
-                            onClose()
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "Error saving file", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    saveOcrResult(".md")
                 }) {
                     Text("Save .md")
                 }

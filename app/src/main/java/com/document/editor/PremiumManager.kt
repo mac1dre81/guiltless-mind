@@ -34,43 +34,32 @@ class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
         })
     }
     private fun checkPurchases() {
-        // Query InApp features
+        queryPurchaseStatus(BillingClient.ProductType.INAPP, setOf(PREMIUM_ID), _isPremium)
+        queryPurchaseStatus(BillingClient.ProductType.SUBS, setOf(PRO_MONTHLY_ID, PRO_YEARLY_ID), _isPro)
+    }
+
+    private fun queryPurchaseStatus(
+        productType: String,
+        validProductIds: Set<String>,
+        stateFlow: MutableStateFlow<Boolean>
+    ) {
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder()
-                .setProductType(BillingClient.ProductType.INAPP)
+                .setProductType(productType)
                 .build()
         ) { result, purchases ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                var hasPremium = false
+                var hasValidPurchase = false
                 for (purchase in purchases) {
-                    if (purchase.products.contains(PREMIUM_ID) && purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                        hasPremium = true
+                    val hasProduct = purchase.products.any { it in validProductIds }
+                    if (hasProduct && purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                        hasValidPurchase = true
                         if (!purchase.isAcknowledged) {
-                            acknowledgePurchase(purchase, false)
+                            acknowledgePurchase(purchase, validProductIds == setOf(PRO_MONTHLY_ID, PRO_YEARLY_ID))
                         }
                     }
                 }
-                _isPremium.value = hasPremium
-            }
-        }
-        // Query Subs features
-        billingClient.queryPurchasesAsync(
-            QueryPurchasesParams.newBuilder()
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build()
-        ) { result, purchases ->
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                var hasPro = false
-                for (purchase in purchases) {
-                    val isPro = purchase.products.contains(PRO_MONTHLY_ID).or(purchase.products.contains(PRO_YEARLY_ID))
-                    if (isPro && purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                        hasPro = true
-                        if (!purchase.isAcknowledged) {
-                            acknowledgePurchase(purchase, true)
-                        }
-                    }
-                }
-                _isPro.value = hasPro
+                stateFlow.value = hasValidPurchase
             }
         }
     }
@@ -121,7 +110,7 @@ class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
         if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (purchase in purchases) {
                 if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                    val isProPurchase = purchase.products.contains(PRO_MONTHLY_ID).or(purchase.products.contains(PRO_YEARLY_ID))
+                    val isProPurchase = purchase.products.any { it in setOf(PRO_MONTHLY_ID, PRO_YEARLY_ID) }
                     if (!purchase.isAcknowledged) {
                         acknowledgePurchase(purchase, isProPurchase)
                     } else {

@@ -83,8 +83,16 @@ class DocumentListFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 recentFilesRepository.recentFilesFlow.collectLatest { recentUris ->
-                    val validUris = recentUris.filter(::isUriAccessible)
-                    val removedUris = recentUris - validUris.toSet()
+                    val validUris = mutableListOf<String>()
+                    val removedUris = mutableListOf<String>()
+
+                    recentUris.forEach { uri ->
+                        if (isUriAccessible(uri)) {
+                            validUris.add(uri)
+                        } else {
+                            removedUris.add(uri)
+                        }
+                    }
 
                     removedUris.forEach { uri ->
                         recentFilesRepository.removeRecentFile(uri)
@@ -94,7 +102,6 @@ class DocumentListFragment : Fragment() {
                     val displayItems = validUris.map(::resolveDisplayName)
                     recentFilesAdapter.clear()
                     recentFilesAdapter.addAll(displayItems)
-                    recentFilesAdapter.notifyDataSetChanged()
                 }
             }
         }

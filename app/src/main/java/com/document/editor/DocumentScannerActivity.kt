@@ -89,20 +89,16 @@ class DocumentScannerActivity : ComponentActivity() {
 
     private fun savePdfToRecentFiles(uri: Uri): File? {
         return try {
-            val contentResolver = contentResolver
-            val inputStream = contentResolver.openInputStream(uri)
             val file = File(filesDir, "Scanned_Document_${System.currentTimeMillis()}.pdf")
-            val outputStream = FileOutputStream(file)
-
-            inputStream?.copyTo(outputStream)
-            inputStream?.close()
-            outputStream.close()
-
+            contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(file).use { output ->
+                    input.copyTo(output)
+                }
+            }
             Toast.makeText(this, "Saved ${file.name}", Toast.LENGTH_LONG).show()
             file
         } catch (e: Exception) {
             Toast.makeText(this, "Error saving document", Toast.LENGTH_SHORT).show()
-            e.printStackTrace()
             null
         }
     }
