@@ -50,6 +50,7 @@ class DocumentScannerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppDiagnostics.logBreadcrumb(this, "Document scanner screen created")
         setContent {
             DocEditorTheme {
                 Surface(
@@ -67,6 +68,7 @@ class DocumentScannerActivity : ComponentActivity() {
     }
 
     private fun launchScanner() {
+        AppDiagnostics.logBreadcrumb(this, "Preparing ML Kit document scanner")
         val options = GmsDocumentScannerOptions.Builder()
             .setGalleryImportAllowed(true)
             .setPageLimit(100)
@@ -77,11 +79,13 @@ class DocumentScannerActivity : ComponentActivity() {
         val scanner = GmsDocumentScanning.getClient(options)
         scanner.getStartScanIntent(this)
             .addOnSuccessListener { intentSender ->
+                AppDiagnostics.logBreadcrumb(this, "Launching ML Kit scanner intent")
                 scannerLauncher.launch(
                     androidx.activity.result.IntentSenderRequest.Builder(intentSender).build()
                 )
             }
             .addOnFailureListener { e ->
+                AppDiagnostics.logBreadcrumb(this, "Failed to start scanner", e)
                 Toast.makeText(this, "Failed to start scanner: ${e.message}", Toast.LENGTH_SHORT).show()
                 finish()
             }
@@ -89,20 +93,18 @@ class DocumentScannerActivity : ComponentActivity() {
 
     private fun savePdfToRecentFiles(uri: Uri): File? {
         return try {
-            val contentResolver = contentResolver
-            val inputStream = contentResolver.openInputStream(uri)
             val file = File(filesDir, "Scanned_Document_${System.currentTimeMillis()}.pdf")
-            val outputStream = FileOutputStream(file)
-
-            inputStream?.copyTo(outputStream)
-            inputStream?.close()
-            outputStream.close()
-
+            contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(file).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            AppDiagnostics.logBreadcrumb(this, "Scanner PDF saved to ${AppDiagnostics.describeUri(Uri.fromFile(file).toString())}")
             Toast.makeText(this, "Saved ${file.name}", Toast.LENGTH_LONG).show()
             file
         } catch (e: Exception) {
+            AppDiagnostics.logBreadcrumb(this, "Error saving scanned document", e)
             Toast.makeText(this, "Error saving document", Toast.LENGTH_SHORT).show()
-            e.printStackTrace()
             null
         }
     }

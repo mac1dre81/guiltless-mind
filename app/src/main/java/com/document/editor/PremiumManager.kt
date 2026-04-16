@@ -1,79 +1,105 @@
 package com.document.editor
+
 import android.app.Activity
 import android.content.Context
-import com.android.billingclient.api.*
+import com.android.billingclient.api.AcknowledgePurchaseParams
+import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.PendingPurchasesParams
+import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+import java.io.Closeable
+
+class PremiumManager(context: Context) : PurchasesUpdatedListener, Closeable {
+    private val appContext = context.applicationContext
     private val _isPremium = MutableStateFlow(false)
     val isPremium: StateFlow<Boolean> = _isPremium
     private val _isPro = MutableStateFlow(false)
     val isPro: StateFlow<Boolean> = _isPro
-    private val PREMIUM_ID = "premium_upgrade"
-    private val PRO_MONTHLY_ID = "pro_monthly"
-    private val PRO_YEARLY_ID = "pro_yearly"
-    private var billingClient = BillingClient.newBuilder(context)
+    private val premiumProductId = "premium_upgrade"
+    private val proMonthlyProductId = "pro_monthly"
+    private val proYearlyProductId = "pro_yearly"
+    private var isClosed = false
+    private val billingClient = BillingClient.newBuilder(appContext)
         .setListener(this)
         .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
         .build()
+
     init {
+        connectBillingClient()
+    }
+
+    private fun connectBillingClient(onReady: (() -> Unit)? = null) {
+        if (isClosed) {
+            return
+        }
+        if (billingClient.isReady) {
+            onReady?.invoke()
+            return
+        }
+
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(result: BillingResult) {
+                AppDiagnostics.logBreadcrumb(
+                    appContext,
+                    "Billing setup finished: ${result.responseCode}"
+                )
                 if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                     checkPurchases()
+                    onReady?.invoke()
                 }
             }
+
             override fun onBillingServiceDisconnected() {
-                // Retry connection logic could go here
+                AppDiagnostics.logBreadcrumb(appContext, "Billing service disconnected")
             }
         })
     }
+
     private fun checkPurchases() {
-        // Query InApp features
+        queryPurchaseStatus(BillingClient.ProductType.INAPP, setOf(premiumProductId), _isPremium)
+        queryPurchaseStatus(BillingClient.ProductType.SUBS, setOf(proMonthlyProductId, proYearlyProductId), _isPro)
+    }
+
+    private fun queryPurchaseStatus(
+        productType: String,
+        validProductIds: Set<String>,
+        stateFlow: MutableStateFlow<Boolean>
+    ) {
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder()
-                .setProductType(BillingClient.ProductType.INAPP)
+                .setProductType(productType)
                 .build()
         ) { result, purchases ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                var hasPremium = false
+                var hasValidPurchase = false
                 for (purchase in purchases) {
-                    if (purchase.products.contains(PREMIUM_ID) && purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                        hasPremium = true
-                        if (!purchase.isAcknowledged) {
-                            acknowledgePurchase(purchase, false)
+                    val hasProduct = purchase.products.any { it in validProductIds }
+                    if (hasProduct && purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                        hasValidPurchase = true
+                        if (!purchase.isAcknowledged && productType == BillingClient.ProductType.INAPP) {
+                            acknowledgePurchase(
+                                purchase = purchase,
+                                isProPurchase = validProductIds.contains(proMonthlyProductId) || validProductIds.contains(proYearlyProductId)
+                            )
                         }
                     }
                 }
-                _isPremium.value = hasPremium
-            }
-        }
-        // Query Subs features
-        billingClient.queryPurchasesAsync(
-            QueryPurchasesParams.newBuilder()
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build()
-        ) { result, purchases ->
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                var hasPro = false
-                for (purchase in purchases) {
-                    val isPro = purchase.products.contains(PRO_MONTHLY_ID).or(purchase.products.contains(PRO_YEARLY_ID))
-                    if (isPro && purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                        hasPro = true
-                        if (!purchase.isAcknowledged) {
-                            acknowledgePurchase(purchase, true)
-                        }
-                    }
-                }
-                _isPro.value = hasPro
+                stateFlow.value = hasValidPurchase
+                AppDiagnostics.logBreadcrumb(
+                    appContext,
+                    "Purchase status refreshed for $productType: $hasValidPurchase"
+                )
             }
         }
     }
+
     private fun acknowledgePurchase(purchase: Purchase, isProPurchase: Boolean) {
         val acknowledgeParams = AcknowledgePurchaseParams.newBuilder()
             .setPurchaseToken(purchase.purchaseToken)
@@ -81,35 +107,60 @@ class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
         billingClient.acknowledgePurchase(acknowledgeParams) { result ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                 if (isProPurchase) _isPro.value = true else _isPremium.value = true
+                AppDiagnostics.logBreadcrumb(appContext, "Purchase acknowledged")
             }
         }
     }
+
     fun purchasePremium(activity: Activity) {
-        launchBillingFlow(activity, PREMIUM_ID, BillingClient.ProductType.INAPP)
+        AppDiagnostics.logBreadcrumb(appContext, "Launching premium purchase flow")
+        launchBillingFlow(activity, premiumProductId, BillingClient.ProductType.INAPP)
     }
+
     fun purchasePro(activity: Activity) {
-        // defaulting to monthly for MVP
-        launchBillingFlow(activity, PRO_MONTHLY_ID, BillingClient.ProductType.SUBS)
+        AppDiagnostics.logBreadcrumb(appContext, "Launching pro purchase flow")
+        launchBillingFlow(activity, proMonthlyProductId, BillingClient.ProductType.SUBS)
     }
+
     private fun launchBillingFlow(activity: Activity, productId: String, productType: String) {
-        val productList = listOf(
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(productId)
-                .setProductType(productType)
+        connectBillingClient {
+            val params = QueryProductDetailsParams.newBuilder()
+                .setProductList(
+                    listOf(
+                        QueryProductDetailsParams.Product.newBuilder()
+                            .setProductId(productId)
+                            .setProductType(productType)
+                            .build()
+                    )
+                )
                 .build()
-        )
-        val params = QueryProductDetailsParams.newBuilder().setProductList(productList).build()
-        scope.launch {
-            val result = billingClient.queryProductDetails(params)
-            val productDetailsList = result.productDetailsList ?: emptyList()
-            if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK && productDetailsList.isNotEmpty()) {
-                val detailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
-                    .setProductDetails(productDetailsList[0])
-                // Subs need an offer token
-                val offerDetails = productDetailsList[0].subscriptionOfferDetails
-                if (productType == BillingClient.ProductType.SUBS && offerDetails != null && offerDetails.isNotEmpty()) {
-                    detailsParams.setOfferToken(offerDetails[0].offerToken)
+
+            billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsResult ->
+                if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                    AppDiagnostics.logBreadcrumb(
+                        appContext,
+                        "Product details query failed for $productId: ${billingResult.responseCode}"
+                    )
+                    return@queryProductDetailsAsync
                 }
+
+                val productDetails = productDetailsResult.productDetailsList.firstOrNull() ?: run {
+                    AppDiagnostics.logBreadcrumb(appContext, "No product details returned for $productId")
+                    return@queryProductDetailsAsync
+                }
+
+                val detailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
+                    .setProductDetails(productDetails)
+
+                if (productType == BillingClient.ProductType.SUBS) {
+                    val offerToken = productDetails.subscriptionOfferDetails
+                        ?.firstOrNull()
+                        ?.offerToken
+                    if (!offerToken.isNullOrBlank()) {
+                        detailsParams.setOfferToken(offerToken)
+                    }
+                }
+
                 val flowParams = BillingFlowParams.newBuilder()
                     .setProductDetailsParamsList(listOf(detailsParams.build()))
                     .build()
@@ -117,12 +168,14 @@ class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
             }
         }
     }
+
     override fun onPurchasesUpdated(result: BillingResult, purchases: MutableList<Purchase>?) {
+        AppDiagnostics.logBreadcrumb(appContext, "Purchases updated: ${result.responseCode}")
         if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (purchase in purchases) {
                 if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                    val isProPurchase = purchase.products.contains(PRO_MONTHLY_ID).or(purchase.products.contains(PRO_YEARLY_ID))
-                    if (!purchase.isAcknowledged) {
+                    val isProPurchase = purchase.products.any { it == proMonthlyProductId || it == proYearlyProductId }
+                    if (!purchase.isAcknowledged && !isProPurchase) {
                         acknowledgePurchase(purchase, isProPurchase)
                     } else {
                         if (isProPurchase) _isPro.value = true else _isPremium.value = true
@@ -130,5 +183,14 @@ class PremiumManager(private val context: Context) : PurchasesUpdatedListener {
                 }
             }
         }
+    }
+
+    override fun close() {
+        if (isClosed) {
+            return
+        }
+        isClosed = true
+        AppDiagnostics.logBreadcrumb(appContext, "Closing billing client")
+        runCatching { billingClient.endConnection() }
     }
 }

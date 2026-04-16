@@ -15,6 +15,11 @@ import java.io.IOException
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
+data class RecentFileEntry(
+    val timestamp: Long,
+    val uri: String
+)
+
 class RecentFilesRepository(private val context: Context) {
     private val recentFilesKey = stringSetPreferencesKey("recent_files")
     private val darkModeKey = booleanPreferencesKey("dark_mode")
@@ -29,11 +34,14 @@ class RecentFilesRepository(private val context: Context) {
 
     val isDarkModeFlow: Flow<Boolean?> = safePreferencesFlow.map { it[darkModeKey] }
 
-    val recentFilesFlow: Flow<List<String>> = safePreferencesFlow.map { preferences ->
+    val recentFileEntriesFlow: Flow<List<RecentFileEntry>> = safePreferencesFlow.map { preferences ->
         (preferences[recentFilesKey] ?: emptySet())
             .mapNotNull(::parseRecentFileEntry)
-            .sortedByDescending { it.first }
-            .map { it.second }
+            .sortedByDescending { it.timestamp }
+    }
+
+    val recentFilesFlow: Flow<List<String>> = recentFileEntriesFlow.map { entries ->
+        entries.map(RecentFileEntry::uri)
     }
 
     suspend fun setDarkMode(isDark: Boolean) {
@@ -46,14 +54,18 @@ class RecentFilesRepository(private val context: Context) {
         val timestamp = System.currentTimeMillis()
         context.dataStore.edit { preferences ->
             val current = preferences[recentFilesKey] ?: emptySet()
-            val updated = current.filterNot { it.endsWith("::$uri") || it.substringAfter("::", "") == uri }.toMutableSet()
+            val updated = current.filterNot { it.substringAfter("::", "") == uri }.toMutableSet()
             updated.add("$timestamp::$uri")
 
             val latest = updated
-                .mapNotNull { entry -> parseRecentFileEntry(entry)?.let { parsed -> parsed.first to entry } }
-                .sortedByDescending { it.first }
+                .mapNotNull { entry ->
+                    parseRecentFileEntry(entry)?.let { parsed ->
+                        parsed.timestamp to entry
+                    }
+                }
+                .sortedByDescending { pair -> pair.first }
                 .take(50)
-                .map { it.second }
+                .map { pair -> pair.second }
                 .toSet()
 
             preferences[recentFilesKey] = latest
@@ -67,7 +79,7 @@ class RecentFilesRepository(private val context: Context) {
         }
     }
 
-    private fun parseRecentFileEntry(entry: String): Pair<Long, String>? {
+    private fun parseRecentFileEntry(entry: String): RecentFileEntry? {
         val parts = entry.split("::", limit = 2)
         if (parts.size != 2) {
             return null
@@ -79,6 +91,6 @@ class RecentFilesRepository(private val context: Context) {
             return null
         }
 
-        return timestamp to uri
+        return RecentFileEntry(timestamp = timestamp, uri = uri)
     }
 }

@@ -3,8 +3,8 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
-import androidx.core.net.toUri
 import android.os.ParcelFileDescriptor
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,8 +12,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.InputStream
-import java.io.OutputStream
+
 class DocumentViewModel(application: Application) : AndroidViewModel(application) {
     private val _content = MutableLiveData<String>()
     val content: LiveData<String> = _content
@@ -30,10 +29,12 @@ class DocumentViewModel(application: Application) : AndroidViewModel(application
     private var pdfRenderer: PdfRenderer? = null
     private var fileDescriptor: ParcelFileDescriptor? = null
     private var currentPage: PdfRenderer.Page? = null
+
     fun loadDocument(uriString: String) {
         viewModelScope.launch {
             _isLoading.value = true
             val uri = uriString.toUri()
+            AppDiagnostics.logBreadcrumb(getApplication(), "Loading document ${AppDiagnostics.describeUri(uriString)}")
             try {
                 val type = determineDocType(uri)
                 documentType.value = type
@@ -52,6 +53,7 @@ class DocumentViewModel(application: Application) : AndroidViewModel(application
                     }
                 }
             } catch (e: Exception) {
+                AppDiagnostics.logBreadcrumb(getApplication(), "Document load failed", e)
                 _error.value = e.message
             } finally {
                 _isLoading.value = false
@@ -62,6 +64,7 @@ class DocumentViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             _isLoading.value = true
             val uri = uriString.toUri()
+            AppDiagnostics.logBreadcrumb(getApplication(), "Saving document ${AppDiagnostics.describeUri(uriString)}")
             try {
                 withContext(Dispatchers.IO) {
                     val cr = getApplication<Application>().contentResolver
@@ -71,6 +74,7 @@ class DocumentViewModel(application: Application) : AndroidViewModel(application
                 }
                 _error.value = "Saved successfully"
             } catch (e: Exception) {
+                AppDiagnostics.logBreadcrumb(getApplication(), "Document save failed", e)
                 _error.value = "Save failed: ${e.message}"
             } finally {
                 _isLoading.value = false
@@ -107,6 +111,7 @@ class DocumentViewModel(application: Application) : AndroidViewModel(application
                     showPdfPage(0)
                 }
             } catch (e: Exception) {
+                AppDiagnostics.logBreadcrumb(getApplication(), "PDF load failed", e)
                 withContext(Dispatchers.Main) {
                     _error.value = "Failed to load PDF: ${e.message}"
                 }

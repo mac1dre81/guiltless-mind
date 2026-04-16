@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:ignore="HardcodedText,ContentDescription,Autofill">
+    android:layout_height="match_parent">
     <LinearLayout
         android:id="@+id/searchToolbar"
         android:layout_width="match_parent"
@@ -21,6 +19,7 @@
             android:id="@+id/searchEditText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:importantForAutofill="no"
             android:layout_weight="1"
             android:hint="@string/search_hint"
             android:maxLines="1"
@@ -63,19 +62,19 @@
             android:id="@+id/btnBold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Bold"
+            android:text="@string/markdown_bold"
             style="?attr/buttonBarButtonStyle"/>
         <Button
             android:id="@+id/btnItalic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Italic"
+            android:text="@string/markdown_italic"
             style="?attr/buttonBarButtonStyle"/>
         <Button
             android:id="@+id/btnList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="List"
+            android:text="@string/markdown_list"
             style="?attr/buttonBarButtonStyle"/>
     </LinearLayout>
     <EditText
@@ -83,6 +82,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:gravity="top|start"
+        android:importantForAutofill="no"
         android:inputType="textMultiLine"
         android:padding="16dp"
         android:visibility="gone"
@@ -111,6 +111,7 @@
         android:id="@+id/pdfImageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:contentDescription="@string/pdf_preview_content_description"
         android:visibility="gone"
         android:scaleType="fitCenter" />
 

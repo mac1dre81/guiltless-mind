@@ -1,6 +1,7 @@
 package com.document.editor
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -18,6 +19,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        AppDiagnostics.logBreadcrumb(this, "MainActivity created")
+        AppDiagnostics.consumeLastCrashReport(this)?.let {
+            AppDiagnostics.logBreadcrumb(this, "Recovered from previous crash")
+            Toast.makeText(this, getString(R.string.crash_recovery_message), Toast.LENGTH_LONG).show()
+        }
 
         setContentView(R.layout.activity_main)
 
@@ -41,6 +48,8 @@ class MainActivity : AppCompatActivity() {
 
         runCatching {
             MobileAds.initialize(this) {}
+        }.onFailure { throwable ->
+            AppDiagnostics.logBreadcrumb(this, "AdMob initialization failed", throwable)
         }
 
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
