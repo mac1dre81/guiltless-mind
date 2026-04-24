@@ -107,13 +107,175 @@
             android:padding="16dp"
             android:textIsSelectable="true" />
     </ScrollView>
-    <ImageView
-        android:id="@+id/pdfImageView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:contentDescription="@string/pdf_preview_content_description"
+
+    <FrameLayout
+        android:id="@+id/pdfPageStage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:visibility="gone"
-        android:scaleType="fitCenter" />
+        app:layout_constraintTop_toBottomOf="@id/searchToolbar"
+        app:layout_constraintBottom_toTopOf="@id/pdfToolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/pdfImageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/pdf_preview_content_description"
+            android:scaleType="fitCenter" />
+
+        <com.document.editor.PdfAnnotationOverlayView
+            android:id="@+id/pdfAnnotationOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/pdfSelectedBoxHintChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp"
+            android:text="@string/pdf_box_long_press_hint"
+            android:visibility="gone"
+            android:clickable="false"
+            android:focusable="false"
+            android:minHeight="32dp"
+            app:chipBackgroundColor="@android:color/black"
+            app:chipIconVisible="false"
+            app:ensureMinTouchTargetSize="false"
+            app:textEndPadding="10dp"
+            app:textStartPadding="10dp"
+            android:textColor="@android:color/white" />
+    </FrameLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/pdfToolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        android:elevation="4dp"
+        android:fillViewport="true"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="6dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnPdfPrevious"
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pdf_previous_page" />
+
+                <TextView
+                    android:id="@+id/pdfPageIndicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="8dp"
+                    android:text="@string/pdf_page_indicator_default"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <Button
+                    android:id="@+id/btnPdfNext"
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pdf_next_page" />
+
+                <Space
+                    android:layout_width="12dp"
+                    android:layout_height="1dp" />
+
+                <TextView
+                    android:id="@+id/pdfZoomValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="@string/pdf_zoom_default"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <SeekBar
+                    android:id="@+id/pdfZoomSlider"
+                    android:layout_width="220dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:max="300"
+                    android:progress="0" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnPdfHand"
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pdf_tool_hand" />
+
+                <Button
+                    android:id="@+id/btnPdfPen"
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pdf_tool_pen" />
+
+                <Button
+                    android:id="@+id/btnPdfHighlight"
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pdf_tool_highlight" />
+
+                <Button
+                    android:id="@+id/btnPdfSignature"
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pdf_tool_signature" />
+
+                <Button
+                    android:id="@+id/btnPdfBox"
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pdf_tool_box" />
+
+                <Button
+                    android:id="@+id/btnPdfEraser"
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pdf_tool_eraser" />
+
+                <Button
+                    android:id="@+id/btnPdfUndo"
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pdf_tool_undo" />
+            </LinearLayout>
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <TextView
         android:id="@+id/emptyStateText"
@@ -124,7 +286,7 @@
         android:text="@string/editor_empty_state"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/searchToolbar"
-        app:layout_constraintBottom_toTopOf="@id/formatToolbar"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

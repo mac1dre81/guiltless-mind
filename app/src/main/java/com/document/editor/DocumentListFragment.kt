@@ -16,27 +16,42 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
+import kotlin.math.min
 
+@AndroidEntryPoint
 class DocumentListFragment : Fragment() {
-    private lateinit var premiumManager: PremiumManager
-    private lateinit var recentFilesRepository: RecentFilesRepository
+    @Inject
+    lateinit var recentFilesRepository: RecentFilesRepository
+
+    @Inject
+    lateinit var premiumManager: PremiumManager
+
+    @Inject
+    lateinit var premiumStatusProvider: PremiumStatusProvider
+
     private lateinit var recentFilesAdapter: RecentFilesAdapter
     private lateinit var recentFilesListView: ListView
     private lateinit var emptyView: TextView
     private lateinit var subscriptionStatusText: TextView
-    private lateinit var upgradePremiumButton: View
+    private lateinit var scanButton: View
 
     private var recentFileCards: List<RecentFileCard> = emptyList()
     private var isPremiumUser = false
     private var isProUser = false
+    private var visibleRecentItemCount = INITIAL_RECENT_PAGE_SIZE
 
     private val openDocumentLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) {
@@ -45,12 +60,6 @@ class DocumentListFragment : Fragment() {
         }
 
         handleSelectedDocument(uri)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        premiumManager = PremiumManager(requireContext())
-        recentFilesRepository = RecentFilesRepository(requireContext())
     }
 
     override fun onCreateView(
@@ -67,25 +76,23 @@ class DocumentListFragment : Fragment() {
         recentFilesListView = view.findViewById(R.id.recentFilesListView)
         emptyView = view.findViewById(android.R.id.empty)
         subscriptionStatusText = view.findViewById(R.id.subscriptionStatusText)
-        upgradePremiumButton = view.findViewById(R.id.btnUpgradePremium)
+        scanButton = view.findViewById(R.id.fab_scan)
 
         recentFilesAdapter = RecentFilesAdapter(requireContext())
         recentFilesListView.adapter = recentFilesAdapter
         recentFilesListView.emptyView = emptyView
+        ViewCompat.setAccessibilityHeading(subscriptionStatusText, true)
+        ViewCompat.setAccessibilityHeading(view.findViewById(R.id.recentFilesSectionTitle), true)
 
         view.findViewById<View>(R.id.btnOpenDocument).setOnClickListener {
             AppDiagnostics.logBreadcrumb(requireContext(), "Open document tapped")
-            openDocumentLauncher.launch(arrayOf("text/*", "application/pdf", "application/octet-stream", "image/*"))
+            openDocumentLauncher.launch(arrayOf("*/*"))
         }
         view.findViewById<View>(R.id.btnSettings).setOnClickListener {
             AppDiagnostics.logBreadcrumb(requireContext(), "Settings tapped")
             startActivity(Intent(requireContext(), SettingsActivity::class.java))
         }
-        upgradePremiumButton.setOnClickListener {
-            AppDiagnostics.logBreadcrumb(requireContext(), "Premium upgrade tapped")
-            premiumManager.purchasePremium(requireActivity())
-        }
-        view.findViewById<View>(R.id.fab_scan).setOnClickListener {
+        scanButton.setOnClickListener {
             checkProAndScan()
         }
 
@@ -96,9 +103,9 @@ class DocumentListFragment : Fragment() {
         }
         recentFilesListView.setOnItemLongClickListener { _, _, position, _ ->
             val card = recentFileCards.getOrNull(position) ?: return@setOnItemLongClickListener false
-            viewLifecycleOwner.lifecycleScope.launch {
+            lifecycleScope.launch {
                 recentFilesRepository.removeRecentFile(card.uri)
-                Toast.makeText(requireContext(), getString(R.string.recent_file_remove), Toast.LENGTH_SHORT).show()
+                showMessage(getString(R.string.recent_file_remove))
                 AppDiagnostics.logBreadcrumb(
                     requireContext(),
                     "Recent file removed manually: ${AppDiagnostics.describeUri(card.uri)}"
@@ -106,6 +113,24 @@ class DocumentListFragment : Fragment() {
             }
             true
         }
+
+        recentFilesListView.setOnScrollListener(object : android.widget.AbsListView.OnScrollListener {
+            override fun onScrollStateChanged(view: android.widget.AbsListView?, scrollState: Int) = Unit
+
+            override fun onScroll(
+                view: android.widget.AbsListView?,
+                firstVisibleItem: Int,
+                visibleItemCount: Int,
+                totalItemCount: Int
+            ) {
+                if (totalItemCount == 0) return
+                val reachedNearEnd =
+                    firstVisibleItem + visibleItemCount >= totalItemCount - RECENT_LIST_PREFETCH_THRESHOLD
+                if (reachedNearEnd) {
+                    loadNextRecentPageIfNeeded()
+                }
+            }
+        })
 
         observeRecentFiles()
         observeSubscriptionState()
@@ -116,22 +141,22 @@ class DocumentListFragment : Fragment() {
         super.onDestroyView()
     }
 
-    override fun onDestroy() {
-        premiumManager.close()
-        super.onDestroy()
+    override fun onResume() {
+        super.onResume()
+        premiumStatusProvider.refreshEntitlements()
     }
 
     private fun observeSubscriptionState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    premiumManager.isPremium.collectLatest { isPremium ->
+                    premiumStatusProvider.isPremium.collectLatest { isPremium ->
                         isPremiumUser = isPremium
                         updateSubscriptionUi()
                     }
                 }
                 launch {
-                    premiumManager.isPro.collectLatest { isPro ->
+                    premiumStatusProvider.isPro.collectLatest { isPro ->
                         isProUser = isPro
                         updateSubscriptionUi()
                     }
@@ -146,7 +171,17 @@ class DocumentListFragment : Fragment() {
             isPremiumUser -> getString(R.string.subscription_premium)
             else -> getString(R.string.subscription_free)
         }
-        upgradePremiumButton.visibility = if (isPremiumUser || isProUser) View.GONE else View.VISIBLE
+        val scanLabel = if (isProUser) {
+            getString(R.string.scan_document_cta)
+        } else {
+            getString(R.string.scan_document_pro)
+        }
+        (scanButton as? TextView)?.text = scanLabel
+        scanButton.contentDescription = if (isProUser) {
+            getString(R.string.scan_document_ready_content_description)
+        } else {
+            getString(R.string.scan_document_locked_content_description)
+        }
     }
 
     private fun observeRecentFiles() {
@@ -157,7 +192,7 @@ class DocumentListFragment : Fragment() {
                     val removedUris = mutableListOf<String>()
 
                     recentEntries.forEach { entry ->
-                        if (isUriAccessible(entry.uri)) {
+                        if (isUriFastAccessible(entry.uri) || isUriAccessible(entry.uri)) {
                             validEntries.add(entry)
                         } else {
                             removedUris.add(entry.uri)
@@ -171,22 +206,35 @@ class DocumentListFragment : Fragment() {
                     if (removedUris.isNotEmpty()) {
                         AppDiagnostics.logBreadcrumb(
                             requireContext(),
-                            "Removed inaccessible recent files: ${removedUris.joinToString { AppDiagnostics.describeUri(it) }}"
+                            "Removed inaccessible recent files: ${
+                                removedUris.joinToString {
+                                    AppDiagnostics.describeUri(
+                                        it
+                                    )
+                                }
+                            }"
                         )
-                        Toast.makeText(requireContext(), getString(R.string.recent_files_cleanup_message), Toast.LENGTH_SHORT).show()
+                        showMessage(getString(R.string.recent_files_cleanup_message))
                     }
 
-                    recentFileCards = validEntries.map { entry ->
-                        RecentFileCard(
-                            uri = entry.uri,
-                            title = resolveDisplayName(entry.uri),
-                            subtitle = getString(
-                                R.string.recent_file_subtitle,
-                                resolveFileTypeLabel(entry.uri),
-                                formatRelativeTimestamp(entry.timestamp)
-                            )
-                        )
+                    if (visibleRecentItemCount < INITIAL_RECENT_PAGE_SIZE) {
+                        visibleRecentItemCount = INITIAL_RECENT_PAGE_SIZE
                     }
+
+                    val cappedCount = min(visibleRecentItemCount, validEntries.size)
+                    recentFileCards = validEntries
+                        .take(cappedCount)
+                        .map { entry ->
+                            RecentFileCard(
+                                uri = entry.uri,
+                                title = resolveDisplayName(entry.uri),
+                                subtitle = getString(
+                                    R.string.recent_file_subtitle,
+                                    resolveFileTypeLabel(entry.uri),
+                                    formatRelativeTimestamp(entry.timestamp)
+                                )
+                            )
+                        }
                     recentFilesAdapter.replaceItems(recentFileCards)
                 }
             }
@@ -208,15 +256,21 @@ class DocumentListFragment : Fragment() {
             )
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
+        lifecycleScope.launch {
             recentFilesRepository.addRecentFile(uri.toString())
         }
-        AppDiagnostics.logBreadcrumb(requireContext(), "Document selected: ${AppDiagnostics.describeUri(uri.toString())}")
+        AppDiagnostics.logBreadcrumb(
+            requireContext(),
+            "Document selected: ${AppDiagnostics.describeUri(uri.toString())}"
+        )
         navigateToEditor(uri.toString())
     }
 
     private fun navigateToEditor(uriString: String) {
-        AppDiagnostics.logBreadcrumb(requireContext(), "Navigating to editor for ${AppDiagnostics.describeUri(uriString)}")
+        AppDiagnostics.logBreadcrumb(
+            requireContext(),
+            "Navigating to editor for ${AppDiagnostics.describeUri(uriString)}"
+        )
         val args = Bundle().apply {
             putString("document_uri", uriString)
         }
@@ -232,8 +286,53 @@ class DocumentListFragment : Fragment() {
             startActivity(Intent(requireContext(), DocumentScannerActivity::class.java))
         } else {
             AppDiagnostics.logBreadcrumb(requireContext(), "Scanner gated behind Pro subscription")
-            Toast.makeText(requireContext(), getString(R.string.pro_required_message), Toast.LENGTH_SHORT).show()
-            premiumManager.purchasePro(requireActivity())
+            showScannerUpgradeDialog()
+        }
+    }
+
+    private fun showScannerUpgradeDialog() {
+        val builder = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.scanner_upgrade_title)
+            .setMessage(R.string.scanner_upgrade_message)
+            .setPositiveButton(R.string.scanner_upgrade_positive) { _, _ ->
+                premiumManager.purchasePro(requireActivity(), ::showBillingMessage)
+            }
+            .setNegativeButton(R.string.scanner_upgrade_negative, null)
+
+        if (BuildConfig.DEBUG) {
+            builder.setNeutralButton(R.string.about_enable_debug_pro) { _, _ ->
+                premiumManager.enableDebugPro()
+                showMessage(getString(R.string.debug_access_enabled))
+            }
+        } else {
+            builder.setNeutralButton(R.string.view_plans_pricing) { _, _ ->
+                startActivity(Intent(requireContext(), AboutActivity::class.java))
+            }
+        }
+
+        builder.show()
+    }
+
+    private fun showBillingMessage(message: String) {
+        showMessage(message)
+    }
+
+    private fun showMessage(message: String) {
+        val anchorView = view
+        if (anchorView != null) {
+            Snackbar.make(anchorView, message, Snackbar.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun isUriFastAccessible(uriString: String): Boolean {
+        val uri = uriString.toUri()
+        return when (uri.scheme) {
+            ContentResolver.SCHEME_FILE -> uri.path?.let { path -> File(path).exists() } == true
+            null -> File(uriString).exists()
+            ContentResolver.SCHEME_CONTENT -> true
+            else -> false
         }
     }
 
@@ -242,10 +341,11 @@ class DocumentListFragment : Fragment() {
         return try {
             when (uri.scheme) {
                 ContentResolver.SCHEME_CONTENT -> {
-                    requireContext().contentResolver.openAssetFileDescriptor(uri, "r")?.close()
+                    requireContext().contentResolver.openFileDescriptor(uri, "r")?.close()
                     true
                 }
-                ContentResolver.SCHEME_FILE -> File(requireNotNull(uri.path)).exists()
+
+                ContentResolver.SCHEME_FILE -> uri.path?.let { path -> File(path).exists() } == true
                 null -> File(uriString).exists()
                 else -> false
             }
@@ -272,6 +372,8 @@ class DocumentListFragment : Fragment() {
                     }
                 }
             }
+
+
         }
 
         return uri.lastPathSegment ?: getString(R.string.unknown_file_name)
@@ -283,7 +385,10 @@ class DocumentListFragment : Fragment() {
             value.endsWith(".pdf") -> getString(R.string.file_type_pdf)
             value.endsWith(".md") -> getString(R.string.file_type_markdown)
             value.endsWith(".txt") -> getString(R.string.file_type_text)
-            value.endsWith(".png") || value.endsWith(".jpg") || value.endsWith(".jpeg") || value.endsWith(".gif") -> getString(R.string.file_type_image)
+            value.endsWith(".png") || value.endsWith(".jpg") || value.endsWith(".jpeg") || value.endsWith(".gif") -> getString(
+                R.string.file_type_image
+            )
+
             else -> getString(R.string.file_type_file)
         }
     }
@@ -305,6 +410,19 @@ class DocumentListFragment : Fragment() {
         val subtitle: String
     )
 
+    private companion object {
+        const val INITIAL_RECENT_PAGE_SIZE = 20
+        const val RECENT_PAGE_SIZE = 20
+        const val RECENT_LIST_PREFETCH_THRESHOLD = 5
+    }
+
+    private fun loadNextRecentPageIfNeeded() {
+        val currentVisible = recentFileCards.size
+        if (currentVisible >= visibleRecentItemCount) {
+            visibleRecentItemCount += RECENT_PAGE_SIZE
+        }
+    }
+
     private class RecentFilesAdapter(context: Context) : ArrayAdapter<RecentFileCard>(context, 0, mutableListOf()) {
         private val inflater = LayoutInflater.from(context)
 
@@ -320,6 +438,13 @@ class DocumentListFragment : Fragment() {
 
             view.findViewById<TextView>(R.id.recentFileTitle).text = item?.title.orEmpty()
             view.findViewById<TextView>(R.id.recentFileSubtitle).text = item?.subtitle.orEmpty()
+            view.contentDescription = item?.let {
+                context.getString(
+                    R.string.recent_file_item_content_description,
+                    it.title,
+                    it.subtitle
+                )
+            }.orEmpty()
             return view
         }
     }

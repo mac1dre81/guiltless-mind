@@ -1,85 +1,102 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8" ?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:orientation="vertical"
+    android:padding="16dp"
+>
+
+    <TextView
+        android:id="@+id/subscriptionStatusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:accessibilityLiveRegion="polite"
+        android:text="@string/subscription_free"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+    />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/documents_screen_helper"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+    />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+    >
 
-        <TextView
-            android:layout_width="wrap_content"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenDocument"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/recent_documents_title"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall" />
-
-        <TextView
-            android:id="@+id/subscriptionStatusText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/subscription_free"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?attr/colorOnSurfaceVariant" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnOpenDocument"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/open_document" />
-
-            <Space
-                android:layout_width="12dp"
-                android:layout_height="1dp" />
-
-            <Button
-                android:id="@+id/btnSettings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings" />
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/btnUpgradePremium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/upgrade_premium" />
-
-        <ListView
-            android:id="@+id/recentFilesListView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="16dp"
             android:layout_weight="1"
-            android:divider="@android:color/transparent"
-            android:dividerHeight="8dp" />
+            android:text="@string/open_document"
+            android:contentDescription="@string/open_document"
+            app:icon="@android:drawable/ic_menu_agenda"
+        />
 
-        <TextView
-            android:id="@android:id/empty"
-            android:layout_width="match_parent"
+        <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSettings"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:paddingTop="24dp"
-            android:text="@string/empty_recent_documents"
-            android:visibility="gone" />
+            android:text="@string/settings"
+            android:contentDescription="@string/settings"
+            app:icon="@android:drawable/ic_menu_preferences"
+        />
     </LinearLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/fab_scan"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/scan_document" />
-</FrameLayout>
+        android:layout_marginTop="12dp"
+        android:contentDescription="@string/scan_document_locked_content_description"
+        android:text="@string/scan_document_pro"
+        app:icon="@android:drawable/ic_menu_camera"
+    />
+
+    <TextView
+        android:id="@+id/recentFilesSectionTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/recent_files_section_title"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+    />
+
+    <ListView
+        android:id="@+id/recentFilesListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:contentDescription="@string/recent_files_list_content_description"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="8dp"
+        android:paddingBottom="16dp"
+    />
+
+    <TextView
+        android:id="@android:id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:accessibilityLiveRegion="polite"
+        android:gravity="center"
+        android:paddingTop="24dp"
+        android:text="@string/empty_recent_documents"
+        android:visibility="gone"
+    />
+</LinearLayout>

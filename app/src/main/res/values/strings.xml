@@ -1,19 +1,263 @@
 <resources>
     <string name="app_name">DocEditor</string>
+    <string name="app_tagline">PDF &amp; Text Editor</string>
     <string name="title_documents">Documents</string>
     <string name="title_editor">Editor</string>
+    <string
+        name="screen_subtitle_documents"
+    >Browse, open, and manage files</string>
+    <string
+        name="screen_subtitle_editor"
+    >View, annotate, and edit documents</string>
     <string name="action_save">Save</string>
     <string name="action_search">Search</string>
-    <string name="recent_documents_title">Recent documents</string>
+    <string name="ocr_extracted_text">Extracted Text</string>
+
+    <string name="recent_files_section_title">Recent files</string>
     <string name="open_document">Open document</string>
     <string name="settings">Settings</string>
-    <string name="empty_recent_documents">No recent documents yet. Open a PDF, TXT, or Markdown file to get started.</string>
+    <string name="view_plans_pricing">View plans &amp; pricing</string>
+
+    <string name="upgrade_premium_price">Go Premium • $3.99 once</string>
+    <string name="upgrade_pro_price">Unlock Pro Scanner • $2.99/month</string>
+    <string name="subscription_free">Free plan</string>
+    <string name="subscription_premium">Premium unlocked</string>
+    <string name="subscription_pro">Pro unlocked</string>
+    <string
+        name="empty_recent_documents"
+    >No recent documents yet. Open a PDF, TXT, or Markdown file to get started.</string>
     <string name="scan_document">Scan document</string>
-    <string name="pro_required_message">Pro is required to scan documents.</string>
-    <string name="editor_empty_state">Open a document from the Documents tab to start viewing or editing.</string>
+    <string name="scan_document_cta">Scan document &amp; run OCR</string>
+    <string
+        name="pro_required_message"
+    >Pro is required to scan documents.</string>
+    <string name="scan_document_pro">Scan document • Pro</string>
+    <string
+        name="documents_screen_helper"
+    >Open a file, revisit recent work, or go to Settings for plans and upgrade options.</string>
+
+
+    <string name="pricing_title">Plans &amp; pricing</string>
+    <string
+        name="pricing_free_line"
+    >Free: core editing, PDF viewing, ads, 10 recent files</string>
+    <string
+        name="pricing_premium_line"
+    >Premium: $3.99 once — removes ads, unlimited PDF pages, 50 recent files</string>
+    <string
+        name="pricing_pro_line"
+    >Pro: $2.99/month or $19.99/year — scanner + OCR + all Premium features</string>
+    <string name="how_to_use_title">How to use DocEditor</string>
+    <string
+        name="how_to_use_body"
+    >1. Tap Open document. 2. Choose a TXT, MD, PDF, or image file. 3. Edit text or annotate PDFs. 4. Use Save to replace or save a copy.</string>
+    <string name="scanner_upgrade_title">Unlock document scanning</string>
+    <string
+        name="scanner_upgrade_message"
+    >Scanning is included with Pro. Start a Pro subscription for $2.99/month or $19.99/year to scan paper documents and run OCR offline.</string>
+    <string name="scanner_upgrade_positive">Start Pro</string>
+    <string name="scanner_upgrade_negative">Not now</string>
+    <string
+        name="recent_files_cleanup_message"
+    >Unavailable files were removed from recent documents.</string>
+    <string name="recent_file_opened">Opened %1$s</string>
+    <string name="recent_file_subtitle">%1$s • %2$s</string>
+    <string name="recent_file_remove">Removed from recent documents</string>
+    <string
+        name="recent_files_list_content_description"
+    >Recent files list</string>
+    <string
+        name="recent_file_item_content_description"
+    >%1$s. %2$s. Double tap to open. Double tap and hold to remove from recent files.</string>
+    <string name="unknown_file_name">Unnamed document</string>
+    <string
+        name="unsupported_file_type"
+    >This file type is not supported yet.</string>
+    <string name="file_type_pdf">PDF</string>
+    <string name="file_type_markdown">Markdown</string>
+    <string name="file_type_text">Text</string>
+    <string name="file_type_image">Image</string>
+    <string name="file_type_file">File</string>
+    <string
+        name="crash_recovery_message"
+    >DocEditor recovered from a previous crash. Diagnostics were saved locally.</string>
+    <string
+        name="editor_empty_state"
+    >Open a document from the Documents tab to start viewing or editing.</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_display_title">Display</string>
+    <string name="settings_dark_mode">Dark mode</string>
+    <string
+        name="settings_dark_mode_summary"
+    >Enable the dark theme throughout DocEditor.</string>
+    <string name="settings_font_size">Font size</string>
+    <string name="settings_editor_title">Editor</string>
+    <string name="settings_auto_save">Auto-save</string>
+    <string
+        name="settings_auto_save_summary"
+    >Automatically save text and markdown changes while editing.</string>
+    <string name="settings_help_title">Help &amp; upgrades</string>
+    <string
+        name="settings_help_pricing_title"
+    >How to use, plans &amp; pricing</string>
+    <string
+        name="settings_help_pricing_summary"
+    >Read quick instructions, compare Free/Premium/Pro, and start an upgrade.</string>
+    <string name="accessibility_navigate_up">Navigate up</string>
     <string name="no_document_found">No document found</string>
     <string name="search_hint">Search text…</string>
     <string name="search_next">Next</string>
     <string name="search_close">Close</string>
     <string name="search_no_match">No matching text found</string>
+    <string name="markdown_bold">Bold</string>
+    <string name="markdown_italic">Italic</string>
+    <string name="markdown_list">List</string>
+    <string name="markdown_mode_preview">Preview</string>
+    <string name="markdown_mode_edit">Edit</string>
+    <string name="pdf_preview_content_description">PDF page preview</string>
+    <string name="pdf_page_indicator">Page %1$d of %2$d</string>
+    <string name="pdf_page_indicator_default">Page 1 of 1</string>
+    <string name="pdf_previous_page">Previous</string>
+    <string name="pdf_next_page">Next</string>
+    <string name="pdf_tool_hand">✋ Hand</string>
+    <string name="pdf_tool_pen">Pen</string>
+    <string name="pdf_tool_highlight">Highlight</string>
+    <string name="pdf_tool_signature">Signature</string>
+    <string name="pdf_tool_box">Box</string>
+    <string name="pdf_tool_eraser">Eraser</string>
+    <string name="pdf_tool_undo">Undo</string>
+    <string name="pdf_tool_selected">Selected tool: %1$s</string>
+    <string name="pdf_tool_button_content_description">%1$s tool</string>
+    <string
+        name="pdf_tool_button_selected_content_description"
+    >%1$s tool, selected</string>
+    <string
+        name="pdf_tool_hand_selected"
+    >Hand tool: drag the page when zoomed in, or drag a selected box and its handles to move or resize it.</string>
+    <string
+        name="pdf_tool_box_selected"
+    >Box tool: tap to place a new box. Existing boxes still support move, resize handles, and long-press delete.</string>
+    <string name="pdf_zoom_default">100%</string>
+    <string name="pdf_zoom_value">%1$d%%</string>
+    <plurals name="pdf_zoom_slider_content_description">
+        <item quantity="one">PDF zoom, %1$d percent</item>
+        <item quantity="other">PDF zoom, %1$d percent</item>
+    </plurals>
+    <string
+        name="pdf_page_indicator_content_description"
+    >PDF page %1$d of %2$d</string>
+    <string name="pdf_save_replace_title">Replace existing PDF?</string>
+    <string
+        name="pdf_save_replace_message"
+    >Save a copy is safer. Replacing will overwrite the current PDF with your edited version.</string>
+    <string
+        name="pdf_save_remember_choice"
+    >Don’t ask again for this session</string>
+    <string name="pdf_save_copy">Save a copy</string>
+    <string name="pdf_replace_action">Replace</string>
+    <string name="pdf_save_cancelled">PDF save cancelled</string>
+    <string name="pdf_file_details_name">Name: %1$s</string>
+    <string name="pdf_file_details_size">Size: %1$s</string>
+    <string name="pdf_file_details_modified">Modified: %1$s</string>
+    <string name="pdf_file_details_unknown">Unknown</string>
+    <string
+        name="pdf_edit_mode_hint"
+    >Use Hand, Pen, Highlight, Signature, Box, or Eraser to edit this PDF.</string>
+    <string name="pdf_box_dialog_title">Add content box</string>
+    <string name="pdf_box_dialog_edit_title">Edit content box</string>
+    <string
+        name="pdf_box_dialog_hint"
+    >Tap a spot, choose the box type, and enter what should appear inside the box.</string>
+
+    <string
+        name="pdf_box_content_hint_text"
+    >Type the text to show in this box</string>
+    <string name="pdf_box_content_hint_emoji">Enter one or more emoji</string>
+    <string
+        name="pdf_box_content_hint_sticker"
+    >Enter a short sticker label</string>
+    <string name="pdf_box_content_hint_signature">Type the name to sign</string>
+    <string name="pdf_box_dialog_type">Box type</string>
+    <string name="pdf_box_type_text">Text</string>
+    <string name="pdf_box_type_emoji">Emoji</string>
+    <string name="pdf_box_type_sticker">Sticker</string>
+    <string name="pdf_box_type_signature">Signature</string>
+    <string name="pdf_box_dialog_add">Add box</string>
+    <string name="pdf_box_dialog_save">Save changes</string>
+    <string name="pdf_box_dialog_delete">Delete box</string>
+    <string
+        name="pdf_box_dialog_empty"
+    >Enter something to place in the box.</string>
+    <string name="pdf_box_deleted">Box removed. Tap Undo to restore.</string>
+    <string name="pdf_box_delete_undo_action">Undo</string>
+    <string
+        name="pdf_box_long_press_hint"
+    >Drag handles to resize • hold to delete</string>
+    <string
+        name="scanned_image_content_description"
+    >Scanned image preview</string>
+    <string name="scanner_loading_message">Preparing document scanner…</string>
+    <string name="scanner_start_failed">Failed to start scanner: %1$s</string>
+    <string name="scanner_saved_as">Saved %1$s</string>
+    <string name="scanner_save_error">Error saving document</string>
+    <string
+        name="scan_document_ready_content_description"
+    >Scan document and run OCR</string>
+    <string
+        name="scan_document_locked_content_description"
+    >Scan document. Pro subscription required.</string>
+    <string name="upgrade_to_pro_title">Pro Subscription Required</string>
+    <string
+        name="upgrade_to_pro_message"
+    >OCR text extraction is a Pro feature. Please upgrade to unlock the full power of DocEditor.</string>
+    <string name="upgrade_to_pro_action">Upgrade to Pro</string>
+    <string name="maybe_later">Maybe later</string>
+    <string name="extracting_text">Extracting text…</string>
+    <string name="ocr_error">Error extracting text.</string>
+    <string name="retry">Retry</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="ocr_copy">Copy</string>
+    <string name="save_txt">Save .txt</string>
+    <string name="save_md">Save .md</string>
+    <string name="no_images_found">No images found.</string>
+    <string name="save_error">Error saving file</string>
+    <string name="saved_as">Saved as %1$s</string>
+    <string name="ocr_result_label">Extracted Text</string>
+    <string name="about_title">How to use, plans &amp; pricing</string>
+    <string name="about_current_plan">Current plan</string>
+
+    <string
+        name="about_unlocks_body"
+    >Premium removes ads and expands limits. Pro adds document scanning, OCR, and everything in Premium.</string>
+    <string name="about_open_scanner">Open scanner</string>
+    <string name="about_debug_title">Debug test access</string>
+    <string
+        name="about_debug_body"
+    >This debug build can simulate Premium or Pro locally for device testing when Google Play Billing is unavailable.</string>
+    <string
+        name="about_enable_debug_premium"
+    >Enable Premium test access</string>
+    <string name="about_enable_debug_pro">Enable Pro test access</string>
+    <string name="about_clear_debug_access">Clear test access</string>
+    <string
+        name="debug_access_enabled"
+    >Debug access updated for this device.</string>
+    <string
+        name="billing_unavailable_message"
+    >Google Play Billing is not available in this build yet.</string>
+    <string
+        name="billing_debug_hint"
+    >Install from a Play testing track for real purchases, or use the debug test access buttons on the pricing screen.</string>
+    <string
+        name="billing_launch_failed"
+    >Unable to start the purchase flow right now.</string>
+    <string
+        name="billing_product_unavailable"
+    >The selected product is not available from Google Play on this build.</string>
+    <string
+        name="billing_already_premium"
+    >Premium is already unlocked on this device.</string>
+    <string
+        name="billing_already_pro"
+    >Pro is already unlocked on this device.</string>
 </resources>
