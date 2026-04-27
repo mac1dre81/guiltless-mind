@@ -11,5 +11,7 @@
             "path": "C:\\Program Files\\Android\\Android Studio\\jbr",
             "default": true
         }
-    ]
+    ],
+    "snyk.advanced.autoSelectOrganization": true,
+    "snyk.advanced.organization": "b1ad5f43-f570-4826-8c49-e3a313cffaea"
 }
