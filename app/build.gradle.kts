@@ -85,6 +85,13 @@ android {
         checkReleaseBuilds = true
         lintConfig = file("lint.xml")
     }
+    
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 gradle.taskGraph.whenReady {
@@ -136,16 +143,24 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
 
     // CameraX (live view + frame analysis)
-    implementation("androidx.camera:camera-core:1.4.1")
-    implementation("androidx.camera:camera-camera2:1.4.1")
-    implementation("androidx.camera:camera-lifecycle:1.4.1")
-    implementation("androidx.camera:camera-view:1.4.1")
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
 
     // OpenCV for on-device preprocessing (deskew, contrast, adaptive threshold)
-    implementation("org.opencv:opencv:4.10.0")
+    implementation(libs.opencv.android)
 
+    // Unit testing dependencies
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation("org.mockito:mockito-inline:5.8.0")
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("com.google.truth:truth:1.1.5")
+    
+    // Android test dependencies
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
