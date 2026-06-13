@@ -1,0 +1,68 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.4.2
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [kotlin, java]
+
+  - repo: https://github.com/pre-commit/mirrors-checkstyle
+    rev: v10.12.0
+    hooks:
+      - id: checkstyle
+        name: Checkstyle (Google Java Style)
+        entry: bash -c 'java -jar /path/to/checkstyle.jar -c /path/to/google_checks.xml "$@"'
+        language: system
+        files: \.(java|kt)$
+        types: [java]
+
+  - repo: local
+    hooks:
+      - id: ktlint
+        name: ktlint
+        entry: ktlint --format
+        language: system
+        types: [kotlin]
+        files: \.(kotlin|kt)$
+
+      - id: detekt
+        name: detekt
+        entry: detekt
+        language: system
+        types: [kotlin]
+        files: \.(kotlin|kt)$
+
+  - repo: local
+    hooks:
+      - id: android-lint
+        name: Android Lint
+        entry: ./gradlew lintDebug
+        language: system
+        types: [xml]
+        files: ^(app/src/)
+
+  - repo: local
+    hooks:
+      - id: unit-tests
+        name: Run Unit Tests
+        entry: ./gradlew testDebugUnitTest
+        language: system
+        files: \.(java|kt)$
+        pass_filenames: false
+        always_run: true
+
+      - id: test-coverage
+        name: Test Coverage Check
+        entry: ./gradlew jacocoTestReport
+        language: system
+        files: \.(java|kt)$
+        pass_filenames: false
+        always_run: true

@@ -88,9 +88,14 @@ class DocumentEditorFragment : Fragment() {
     private lateinit var pdfZoomValue: TextView
     private lateinit var emptyStateText: TextView
 
+    // Toolbar references
     private var searchToolbar: View? = null
     private var formatToolbar: View? = null
+
+    // Markdown rendering
     private var markwon: Markwon? = null
+
+    // State variables
     private var isEditMode = false
     private var uriString: String? = null
     private var lastSearchIndex = -1

@@ -151,6 +151,7 @@ class PremiumManager @Inject constructor(
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder()
                 .setProductType(productType)
+                .setProductType(productType)
                 .build()
         ) { result, purchases ->
             if (result.responseCode != BillingClient.BillingResponseCode.OK) {
