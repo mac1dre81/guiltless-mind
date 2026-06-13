@@ -1,0 +1,9 @@
+@echo off
+echo Clearing logcat...
+C:\Users\Dredio\AppData\Local\Android\Sdk\platform-tools\adb.exe logcat -c
+
+echo Launching DocEditor...
+C:\Users\Dredio\AppData\Local\Android\Sdk\platform-tools\adb.exe shell am start -n com.document.editor/.MainActivity
+
+echo Monitoring logs (press Ctrl+C to stop)...
+C:\Users\Dredio\AppData\Local\Android\Sdk\platform-tools\adb.exe logcat AndroidRuntime:E DocEditorDiagnostics:D System.err:W *:S

@@ -1,19 +1,62 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+# --- OS / shell noise ---
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+Thumbs.db
+desktop.ini
+
+# --- Logs / temporary files ---
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.hprof
+
+# --- Gradle / Kotlin ---
+.gradle/
+.kotlin/
 local.properties
 
-# Keystore properties
+# --- Android / build outputs ---
+**/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+out/
+
+# --- Android Studio / IntelliJ local state ---
+*.iml
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/compiler.xml
+.idea/deploymentTargetSelector.xml
+.idea/shelf/
+.idea/httpRequests/
+.idea/dataSources/
+.idea/dataSources.ids
+.idea/dataSources.local.xml
+.idea/**/workspace.xml
+
+# --- Local tool metadata ---
+.qodo/
+.kilo/
+
+# --- Signing secrets and private release material ---
 app/keystore.properties
 app/*.keystore
+app/*.jks
+
+# --- Release artifacts / distribution outputs ---
+*.apk
+*.aab
+*.ap_
+*.aab.sig
+output-metadata.json
+mapping/
+
+# --- Keep templates and source docs tracked ---
+!app/keystore.properties.example

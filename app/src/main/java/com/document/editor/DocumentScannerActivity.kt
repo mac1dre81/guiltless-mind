@@ -7,13 +7,22 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import com.document.editor.ui.theme.DocEditorTheme
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
@@ -50,6 +59,7 @@ class DocumentScannerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppDiagnostics.logBreadcrumb(this, "Document scanner screen created")
         setContent {
             DocEditorTheme {
                 Surface(
@@ -57,7 +67,20 @@ class DocumentScannerActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        Column(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .semantics { liveRegion = LiveRegionMode.Polite },
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator()
+                            Text(
+                                text = stringResource(R.string.scanner_loading_message),
+                                modifier = Modifier.padding(top = 16.dp),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
                 }
             }
@@ -67,6 +90,7 @@ class DocumentScannerActivity : ComponentActivity() {
     }
 
     private fun launchScanner() {
+        AppDiagnostics.logBreadcrumb(this, "Preparing ML Kit document scanner")
         val options = GmsDocumentScannerOptions.Builder()
             .setGalleryImportAllowed(true)
             .setPageLimit(100)
@@ -77,12 +101,18 @@ class DocumentScannerActivity : ComponentActivity() {
         val scanner = GmsDocumentScanning.getClient(options)
         scanner.getStartScanIntent(this)
             .addOnSuccessListener { intentSender ->
+                AppDiagnostics.logBreadcrumb(this, "Launching ML Kit scanner intent")
                 scannerLauncher.launch(
                     androidx.activity.result.IntentSenderRequest.Builder(intentSender).build()
                 )
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to start scanner: ${e.message}", Toast.LENGTH_SHORT).show()
+                AppDiagnostics.logBreadcrumb(this, "Failed to start scanner", e)
+                Toast.makeText(
+                    this,
+                    getString(R.string.scanner_start_failed, e.message ?: getString(R.string.pdf_file_details_unknown)),
+                    Toast.LENGTH_SHORT
+                ).show()
                 finish()
             }
     }
@@ -95,10 +125,12 @@ class DocumentScannerActivity : ComponentActivity() {
                     input.copyTo(output)
                 }
             }
-            Toast.makeText(this, "Saved ${file.name}", Toast.LENGTH_LONG).show()
+            AppDiagnostics.logBreadcrumb(this, "Scanner PDF saved to ${AppDiagnostics.describeUri(Uri.fromFile(file).toString())}")
+            Toast.makeText(this, getString(R.string.scanner_saved_as, file.name), Toast.LENGTH_LONG).show()
             file
         } catch (e: Exception) {
-            Toast.makeText(this, "Error saving document", Toast.LENGTH_SHORT).show()
+            AppDiagnostics.logBreadcrumb(this, "Error saving scanned document", e)
+            Toast.makeText(this, getString(R.string.scanner_save_error), Toast.LENGTH_SHORT).show()
             null
         }
     }
