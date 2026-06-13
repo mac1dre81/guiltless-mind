@@ -13,5 +13,6 @@
         }
     ],
     "snyk.advanced.autoSelectOrganization": true,
-    "snyk.advanced.organization": "b1ad5f43-f570-4826-8c49-e3a313cffaea"
+    "snyk.advanced.organization": "b1ad5f43-f570-4826-8c49-e3a313cffaea",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
